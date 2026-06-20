@@ -31,5 +31,5 @@ def retrieve_chunks(queries, collection_name, all_chunks):
             seen.add(doc.page_content)
             unique_docs.append(doc)
 
-    print(f"[Service 3] ✅ Retrieved {len(unique_docs)} unique chunks")
+    print(f"[Service 3]  Retrieved {len(unique_docs)} unique chunks")
     return unique_docs
