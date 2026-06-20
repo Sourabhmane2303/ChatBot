@@ -19,7 +19,7 @@ def rerank_chunks(question: str, chunks: list, top_n: int = 4) -> list:
 
     # If few chunks, no need to rerank
     if len(chunks) <= top_n:
-        print(f"[Service 4] ✅ Skipped reranking (only {len(chunks)} chunks)")
+        print(f"[Service 4]  Skipped reranking (only {len(chunks)} chunks)")
         return chunks
 
     # ── LLM based reranking ────────────────────────────────────
@@ -53,7 +53,7 @@ def rerank_chunks(question: str, chunks: list, top_n: int = 4) -> list:
 
     top_chunks = [chunk for _, chunk in scored[:top_n]]
 
-    print(f"[Service 4] ✅ Reranked → kept top {len(top_chunks)} chunks")
+    print(f"[Service 4] Reranked → kept top {len(top_chunks)} chunks")
     for score, chunk in scored[:top_n]:
         section = chunk.metadata.get("section", "unknown")
         print(f"            → Score: {score:.1f} | Section: {section}")
@@ -76,5 +76,5 @@ def compress_chunks(chunks: list) -> str:
             parts.append(content)
 
     context = "\n\n---\n\n".join(parts)
-    print(f"[Service 4] ✅ Context compressed → {len(context)} characters")
+    print(f"[Service 4]  Context compressed → {len(context)} characters")
     return context
