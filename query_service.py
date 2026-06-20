@@ -21,5 +21,5 @@ def validate_query(question: str) -> str:
     if len(question) > 1000:
         raise HTTPException(status_code=400, detail="Question too long (max 1000 chars)")
 
-    print(f"\n[Service 1] ✅ Query received: {question[:80]}...")
+    print(f"\n[Service 1]  Query received: {question[:80]}...")
     return question
