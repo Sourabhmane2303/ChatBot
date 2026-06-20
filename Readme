@@ -1,0 +1,383 @@
+# BankIQ — AI-Powered Banking Information Assistant
+
+> An intelligent RAG (Retrieval-Augmented Generation) system that answers customer banking queries instantly from official bank documents — accurately, with zero hallucination.
+
+---
+
+## The Problem It Solves
+
+```
+Banks receive thousands of repetitive customer queries daily:
+
+❓ "What is the interest rate for savings account?"
+❓ "What documents are needed for a home loan?"
+❓ "What is the minimum balance for current account?"
+❓ "What are the charges for credit card?"
+
+Traditional approach → customer waits on hold for agent
+BankIQ approach     → instant accurate answer from official document -
+```
+
+---
+
+## Demo
+
+```
+User   : "What is the interest rate for savings account?"
+BankIQ : "The savings account offers 8.5% interest per annum,
+          credited monthly to your account."
+          Section: INTEREST RATES | Source: bank.pdf
+
+User   : "What documents are required for a home loan?"
+BankIQ : "The required documents include ID proof, address proof,
+          income certificate and last 6 months bank statement."
+          Section: LOAN REQUIREMENTS | Source: bank.pdf
+
+User   : "What is the minimum balance for current account?"
+BankIQ : "The minimum balance required for a current account
+          is ₹10,000 per month."
+          Section: CURRENT ACCOUNT | Source: bank.pdf
+```
+
+---
+
+## Architecture
+
+```
+React Frontend (Port 3000)
+        ↓  POST /ask { question }
+FastAPI Backend (Port 8000)
+        ↓
+┌──────────────────────────────────────────────────┐
+│  Service 1 → Query Validation                    │
+│  Service 2 → Query Rewriting (LLM)               │
+│  Service 3 → Hybrid Retrieval (BM25 + Semantic)  │
+│  Service 4 → Reranking + Compression             │
+│  Service 5 → Answer Generation (LLM)             │
+└──────────────────────────────────────────────────┘
+        ↓                      ↓
+   ChromaDB               Groq LLaMA 3.3-70B
+ (Vector Store)                (LLM)
+```
+
+---
+
+## Tech Stack
+
+| Layer         | Technology                        |
+|---------------|-----------------------------------|
+| Frontend      | React, Vite                       |
+| Backend       | Python, FastAPI, Uvicorn          |
+| Embeddings    | HuggingFace `all-MiniLM-L6-v2`    |
+| Vector DB     | ChromaDB                          |
+| LLM           | Groq LLaMA 3.3-70B                |
+| RAG Framework | LangChain                         |
+| Search        | BM25 + Semantic (Hybrid)          |
+
+---
+
+## Features
+
+- **Instant Answers** — no waiting on hold, answers in seconds
+- **Zero Hallucination** — answers only from official bank document
+- **Source Citation** — every answer shows exact section and source
+- **Hybrid Chunking** — heading-based split + fixed-size chunks
+- **Query Rewriting** — LLM rewrites query 3 ways to handle synonyms
+- **Hybrid Search** — BM25 keyword + Semantic meaning combined
+- **Reranking** — picks the most relevant chunks for accuracy
+- **Persistent Storage** — ChromaDB persists data across restarts
+
+---
+
+## Project Structure
+
+```
+bankiq/
+│
+├── frontend/                     # React Chat UI
+│   ├── src/
+│   │   ├── Chat.jsx              # Main chat component
+│   │   └── main.jsx              # Entry point
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+│
+├── backend/                      # Python FastAPI
+│   ├── main.py                   # API gateway + routes
+│   ├── config.py                 # Shared models + paths
+│   ├── requirements.txt
+│   ├── .env                      # API keys (not committed)
+│   ├── pdfs/                     # Bank PDF stored here
+│   ├── chroma_db/                # ChromaDB vector store
+│   └── services/
+│       ├── query_service.py      # Service 1: validate query
+│       ├── rewrite_service.py    # Service 2: LLM query rewriting
+│       ├── retrieval_service.py  # Service 3: hybrid search
+│       ├── reranking_service.py  # Service 4: rerank + compress
+│       └── generation_service.py # Service 5: generate answer
+│
+└── README.md
+```
+
+---
+
+## How It Works
+
+### PDF Ingestion (run once)
+```
+bank.pdf
+    → Extract text (PyMuPDF)
+    → Clean (remove noise, fix broken words, remove page numbers)
+    → Split by banking section headings
+       (SAVINGS ACCOUNT, LOAN PRODUCTS, INTEREST RATES...)
+    → Fixed-size chunk each section (500 tokens, 100 overlap)
+    → Embed with HuggingFace model (all-MiniLM-L6-v2)
+    → Store in ChromaDB with section metadata
+```
+
+### Query Pipeline (every customer question)
+```
+Customer question
+    → Service 1: Validate input
+    → Service 2: LLM rewrites into 3 variations
+                 "loan rate" → "loan interest rate"
+                             → "rate of interest on loan"
+                             → "loan charges percentage"
+    → Service 3: Hybrid search on all 3 variations
+    → Service 4: Rerank chunks, compress to context
+    → Service 5: LLM generates accurate cited answer
+    → Return { answer, section, source }
+```
+
+### Why Hybrid Search Matters for Banking
+```
+Customer asks : "What is the rate of interest?"
+Document says : "Interest Rate for Savings Account is 8.5%"
+
+Semantic alone → may miss exact "rate" match
+BM25 alone     → may miss "interest percentage" variation
+Hybrid         → catches both -
+
+Banking terms have many synonyms:
+"charges" = "fees" = "tariff"
+"loan"    = "credit" = "borrowing"
+"account" = "deposit" = "savings"
+
+Hybrid search handles all of them.
+```
+
+---
+
+## Setup & Installation
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- Groq API key (free at console.groq.com)
+- Bank information PDF
+
+### Backend Setup
+
+```bash
+# 1. Navigate to backend
+cd backend
+
+# 2. Create virtual environment
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
+# Mac/Linux
+source venv/bin/activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Setup environment
+cp .env.example .env
+# Edit .env → add your GROQ_API_KEY
+
+# 5. Start server
+uvicorn main:app --reload --port 8000
+```
+
+### Frontend Setup
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`
+
+### Ingest Bank PDF
+
+```bash
+# Via FastAPI docs
+http://localhost:8000/docs
+# POST /ingest → upload bank.pdf
+```
+
+---
+
+## API Endpoints
+
+### Ingest Bank PDF
+```
+POST /ingest
+Content-Type: multipart/form-data
+Body: file = bank.pdf
+
+Response:
+{
+  "message"       : "bank.pdf ingested successfully",
+  "total_chunks"  : 48,
+  "sections_found": 12
+}
+```
+
+### Ask a Banking Query
+```
+POST /ask
+Content-Type: application/json
+Body: {
+  "question": "What is the interest rate for FD?",
+  "pdf_name": "bank.pdf"
+}
+
+Response:
+{
+  "answer" : "The Fixed Deposit interest rate is 7.5% per annum for 1 year tenure...",
+  "section": "FIXED DEPOSIT",
+  "source" : "bank.pdf"
+}
+```
+
+### List Ingested Documents
+```
+GET /pdfs
+
+Response:
+{
+  "pdfs" : ["bank"],
+  "total": 1
+}
+```
+
+---
+
+## Environment Variables
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
+CHROMA_PATH=./chroma_db
+UPLOAD_DIR=./pdfs
+```
+
+---
+
+## Key Problems Solved
+
+| Problem | Solution |
+|---------|----------|
+| Customer waits for agent | Instant AI answer from document |
+| "rate" vs "interest rate" mismatch | Query rewriting + hybrid search |
+| Wrong section retrieved | LLM reranking picks best chunks |
+| Answer not from document | Context-only generation prompt |
+| Data lost on restart | ChromaDB persistence + startup loader |
+| Vague answers | Source citation (section + filename) |
+
+---
+
+## Sample Questions It Handles
+
+```
+Account Queries:
+- What is the minimum balance for savings account?
+- What are the charges for zero balance account?
+- How to open a current account?
+
+Loan Queries:
+- What documents are required for a home loan?
+- What is the interest rate for personal loan?
+- What is the maximum tenure for car loan?
+
+Fixed Deposit Queries:
+- What is the FD interest rate for senior citizens?
+- What is the minimum amount for FD?
+- Can I break my FD before maturity?
+
+Card Queries:
+- What are the annual charges for credit card?
+- What is the credit card bill payment due date?
+- What are the cashback offers on debit card?
+```
+
+---
+
+## Dependencies
+
+```
+# Backend
+fastapi
+uvicorn
+python-dotenv
+pymupdf                      # PDF text extraction
+langchain-core
+langchain-community
+langchain-text-splitters
+langchain-huggingface
+langchain-groq
+chromadb                     # Vector database
+sentence-transformers        # Embedding model
+rank_bm25                    # Keyword search
+
+# Frontend
+react
+react-dom
+vite
+@vitejs/plugin-react
+```
+
+---
+
+## Future Improvements
+
+- [ ] Upload PDF directly from React UI
+- [ ] Support multiple bank documents
+- [ ] Multilingual query support (Hindi, regional languages)
+- [ ] Voice input for customer queries
+- [ ] WhatsApp/chatbot integration
+- [ ] RAGAS evaluation metrics
+- [ ] Deploy on AWS / Render / Vercel
+
+---
+
+## Real World Applications
+
+```
+- Bank customer support automation
+- Internal staff knowledge base
+- Branch employee query assistant
+- Customer onboarding information
+- Regulatory compliance queries
+```
+
+---
+
+## Author
+
+**Sourabh**
+Full Stack Developer | AI/RAG Engineer
+
+[LinkedIn]- https://www.linkedin.com/in/sourabh310504/ 
+
+[GitHub]- https://github.com/Sourabhmane2303
+
+---
+
+## License
+
+MIT License — free to use and modify.
