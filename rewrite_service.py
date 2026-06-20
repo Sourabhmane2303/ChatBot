@@ -33,7 +33,7 @@ def rewrite_query(question: str) -> list[str]:
 
         all_queries = [question] + rewrites
 
-        print(f"[Service 2] ✅ Query rewritten into {len(all_queries)} versions:")
+        print(f"[Service 2]  Query rewritten into {len(all_queries)} versions:")
         for i, q in enumerate(all_queries):
             print(f"           {i+1}. {q}")
 
@@ -41,5 +41,5 @@ def rewrite_query(question: str) -> list[str]:
 
     except Exception as e:
         # If rewrite fails, just use original query
-        print(f"[Service 2] ⚠️  Rewrite failed, using original: {e}")
+        print(f"[Service 2]   Rewrite failed, using original: {e}")
         return [question]
