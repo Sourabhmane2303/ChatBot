@@ -9,10 +9,10 @@
 ```
 Banks receive thousands of repetitive customer queries daily:
 
-❓ "What is the interest rate for savings account?"
-❓ "What documents are needed for a home loan?"
-❓ "What is the minimum balance for current account?"
-❓ "What are the charges for credit card?"
+ 1. "What is the interest rate for savings account?"
+ 2. "What documents are needed for a home loan?"
+ 3. "What is the minimum balance for current account?"
+ 4. "What are the charges for credit card?"
 
 Traditional approach → customer waits on hold for agent
 BankIQ approach     → instant accurate answer from official document -
@@ -378,6 +378,6 @@ Full Stack Developer | AI/RAG Engineer
 
 ---
 
-## License
+
 
 MIT License — free to use and modify.
